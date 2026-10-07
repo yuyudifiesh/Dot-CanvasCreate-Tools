@@ -286,7 +286,7 @@
 
 <div class="app">
   <header class="app-header">
-    <h1>画板编辑器</h1>
+    <h1>待办工具画板编辑器</h1>
     <button class="device-btn" id="deviceBtn" type="button" title="点击修改密钥与设备序列号">未配置</button>
   </header>
 
@@ -334,7 +334,8 @@
 </div>
 
 <script>
-  const STORAGE_KEY = 'dot_canvas_config';
+  const STORAGE_KEY  = 'dot_canvas_config';
+  const CONTENT_KEY  = 'dot_canvas_content';
 
   let apiKey   = '';
   let deviceId = '';
@@ -353,14 +354,14 @@
   const saveBtn     = document.getElementById('saveBtn');
   const cancelBtn   = document.getElementById('cancelBtn');
 
-  const title = 'TODAY';
-  const todos = [
+  const DEFAULT_TITLE = 'TODAY';
+  const DEFAULT_TODOS = [
     { done: true,  text: '整理本周的项目计划' },
     { done: false, text: '回复设计稿的反馈意见' },
     { done: false, text: '阅读 30 分钟' }
   ];
 
-  titleInput.value = title;
+  let todos = DEFAULT_TODOS.map((t) => ({ done: t.done, text: t.text }));
 
   function loadConfig() {
     try {
@@ -382,6 +383,42 @@
     } catch (_) {
       return false;
     }
+  }
+
+  function loadContent() {
+    try {
+      const raw = localStorage.getItem(CONTENT_KEY);
+      if (!raw) return null;
+      const obj = JSON.parse(raw);
+
+      const title = (obj && typeof obj.title === 'string' && obj.title.length)
+        ? obj.title
+        : DEFAULT_TITLE;
+
+      let items = null;
+      if (obj && Array.isArray(obj.todos)) {
+        items = obj.todos
+          .filter((t) => t && typeof t.text === 'string')
+          .map((t) => ({ done: !!t.done, text: t.text }));
+      }
+
+      if (!items || items.length === 0) {
+        items = DEFAULT_TODOS.map((t) => ({ done: t.done, text: t.text }));
+      }
+
+      return { title, todos: items };
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function saveContent() {
+    try {
+      localStorage.setItem(CONTENT_KEY, JSON.stringify({
+        title: titleInput.value || DEFAULT_TITLE,
+        todos: todos.map((t) => ({ done: t.done, text: t.text }))
+      }));
+    } catch (_) {}
   }
 
   function applyConfig(cfg) {
@@ -458,6 +495,7 @@
       toggle.addEventListener('click', () => {
         todos[i].done = !todos[i].done;
         syncRow(i);
+        saveContent();
         updatePreview();
       });
 
@@ -468,6 +506,7 @@
       input.placeholder = '待办 ' + (i + 1);
       input.addEventListener('input', (e) => {
         todos[i].text = e.target.value;
+        saveContent();
         updatePreview();
       });
 
@@ -627,13 +666,25 @@
 
   sendBtn.addEventListener('click', send);
 
-  titleInput.addEventListener('input', updatePreview);
+  titleInput.addEventListener('input', () => {
+    saveContent();
+    updatePreview();
+  });
+
+  const savedContent = loadContent();
+  if (savedContent) {
+    titleInput.value = savedContent.title;
+    todos = savedContent.todos;
+  } else {
+    titleInput.value = DEFAULT_TITLE;
+  }
+
   initRows();
   updatePreview();
 
-  const saved = loadConfig();
-  if (saved) {
-    applyConfig(saved);
+  const savedConfig = loadConfig();
+  if (savedConfig) {
+    applyConfig(savedConfig);
   } else {
     updateDeviceButton();
     openModal(true);
