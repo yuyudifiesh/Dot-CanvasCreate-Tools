@@ -14,7 +14,7 @@
 ![待办](53285ba8-9f59-4894-8376-4b7907ca6c81_2519.png)
 
 通过设备传输将待办内容、状态传入Quote/0。    
-[开始编辑](./service/edit-today.html)
+[开始编辑](https://yuyudifiesh.github.io/Dot-CanvasCreate-Tools/service/edit-today.html)
 
 ### 调试工具
-- [Display-Area](./dev/display-area.html) 此工具帮助您确认 Quote/0 屏幕安全显示区域，确认四周线全部能看到即可，欢迎提交 issue 。
+- [Display-Area](https://yuyudifiesh.github.io/Dot-CanvasCreate-Tools/dev/display-area.html) 此工具帮助您确认 Quote/0 屏幕安全显示区域，确认四周线全部能看到即可，欢迎提交 issue 。
