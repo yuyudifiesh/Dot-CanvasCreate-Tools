@@ -286,13 +286,13 @@
 
 <div class="app">
   <header class="app-header">
-    <h1>待办工具画板编辑器</h1>
+    <h1>待办编辑</h1>
     <button class="device-btn" id="deviceBtn" type="button" title="点击修改密钥与设备序列号">未配置</button>
   </header>
 
   <div class="section-label">标题</div>
   <div class="title-row">
-    <input class="title-input" id="titleInput" type="text" value="TODAY" placeholder="输入标题" />
+    <input class="title-input" id="titleInput" type="text" value="待办" placeholder="输入标题" />
   </div>
 
   <div class="section-label">待办事项</div>
@@ -354,7 +354,7 @@
   const saveBtn     = document.getElementById('saveBtn');
   const cancelBtn   = document.getElementById('cancelBtn');
 
-  const DEFAULT_TITLE = 'TODAY';
+  const DEFAULT_TITLE = '待办';
   const DEFAULT_TODOS = [
     { done: true,  text: '整理本周的项目计划' },
     { done: false, text: '回复设计稿的反馈意见' },
@@ -579,7 +579,7 @@
                         props: {
                           tw: 'text-20-chillduansans font-bold',
                           style: { lineHeight: '1', letterSpacing: '2px' },
-                          children: titleInput.value || 'TODAY'
+                          children: titleInput.value || '待办'
                         }
                       }
                     ]
