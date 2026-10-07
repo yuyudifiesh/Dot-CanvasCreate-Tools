@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>待办</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+  }
+
+  html, body {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    background: #ffffff;
+    color: #000000;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+      "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 540px;
+    border: 1px solid #000000;
+    padding: 24px;
+    background: #ffffff;
+  }
+
+  .app-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #000000;
+    margin-bottom: 22px;
+  }
+
+  .app-header h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+
+  .device-btn {
+    border: none;
+    background: transparent;
+    color: #000000;
+    font-family: inherit;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    padding: 4px 2px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .device-btn:hover { opacity: 0.6; }
+
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+
+  .title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  .title-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    border-bottom: 1px solid #000000;
+    background: transparent;
+    color: #000000;
+    font-family: inherit;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    padding: 5px 0;
+    outline: none;
+  }
+  .title-input::placeholder { color: #bbbbbb; letter-spacing: 2px; }
+
+  .todo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 26px;
+  }
+
+  .todo-row {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+
+  .toggle {
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
+    border: 1px solid #000000;
+    background: #ffffff;
+    color: #000000;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: background .1s;
+  }
+  .toggle:hover { background: #f0f0f0; }
+  .toggle:active { background: #e0e0e0; }
+
+  .todo-input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    border-bottom: 1px solid #000000;
+    background: transparent;
+    color: #000000;
+    font-family: inherit;
+    font-size: 18px;
+    padding: 6px 0;
+    outline: none;
+  }
+  .todo-input::placeholder { color: #bbbbbb; }
+
+  .code-preview {
+    border: 1px solid #000000;
+    padding: 12px;
+    max-height: 220px;
+    overflow: auto;
+    margin-bottom: 22px;
+  }
+  .code-preview pre {
+    margin: 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11px;
+    line-height: 1.55;
+    white-space: pre;
+    color: #000000;
+  }
+
+  .send-btn {
+    width: 100%;
+    border: 1px solid #000000;
+    background: #000000;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    padding: 13px;
+    cursor: pointer;
+    transition: opacity .1s;
+  }
+  .send-btn:hover:not(:disabled) { opacity: 0.85; }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .status {
+    margin-top: 14px;
+    font-size: 12px;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .modal-mask {
+    position: fixed;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100;
+  }
+  .modal-mask[hidden] { display: none; }
+
+  .modal {
+    width: 100%;
+    max-width: 440px;
+    border: 1px solid #000000;
+    background: #ffffff;
+    padding: 24px;
+  }
+
+  .modal-title {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 2px;
+  }
+
+  .modal-desc {
+    margin: 0 0 22px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #555555;
+  }
+
+  .field { margin-bottom: 18px; }
+
+  .field label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+
+  .field input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #000000;
+    background: transparent;
+    color: #000000;
+    font-family: inherit;
+    font-size: 14px;
+    padding: 7px 0;
+    outline: none;
+    word-break: break-all;
+  }
+  .field input::placeholder { color: #bbbbbb; }
+
+  .modal-error {
+    font-size: 11px;
+    color: #000000;
+    margin: -8px 0 14px;
+    padding: 8px 10px;
+    border: 1px solid #000000;
+    display: none;
+  }
+  .modal-error.show { display: block; }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 4px;
+  }
+
+  .modal-btn {
+    flex: 1;
+    border: 1px solid #000000;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    padding: 12px;
+    cursor: pointer;
+    transition: opacity .1s;
+  }
+  .modal-btn.primary {
+    background: #000000;
+    color: #ffffff;
+  }
+  .modal-btn.primary:hover { opacity: 0.85; }
+  .modal-btn.ghost {
+    background: #ffffff;
+    color: #000000;
+  }
+  .modal-btn.ghost:hover { background: #f0f0f0; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="app-header">
+    <h1>画板编辑器</h1>
+    <button class="device-btn" id="deviceBtn" type="button" title="点击修改密钥与设备序列号">未配置</button>
+  </header>
+
+  <div class="section-label">标题</div>
+  <div class="title-row">
+    <input class="title-input" id="titleInput" type="text" value="TODAY" placeholder="输入标题" />
+  </div>
+
+  <div class="section-label">待办事项</div>
+  <div class="todo-list" id="todoList"></div>
+
+  <div class="section-label">生成代码</div>
+  <div class="code-preview">
+    <pre id="codePreview"></pre>
+  </div>
+
+  <button class="send-btn" id="sendBtn" type="button">发送到设备</button>
+  <div class="status" id="status" hidden></div>
+</div>
+
+<div class="modal-mask" id="modalMask" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 class="modal-title" id="modalTitle">设备配置</h2>
+    <p class="modal-desc">请填入 API 密钥与设备序列号，信息将保存在本机浏览器中。</p>
+
+    <div class="field">
+      <label for="keyInput">API 密钥</label>
+      <input id="keyInput" type="text" autocomplete="off" spellcheck="false"
+             placeholder="dot_app_..." />
+    </div>
+
+    <div class="field">
+      <label for="deviceInput">设备序列号</label>
+      <input id="deviceInput" type="text" autocomplete="off" spellcheck="false"
+             placeholder="请填写" />
+    </div>
+
+    <div class="modal-error" id="modalError">请把 API 密钥和设备序列号都填写完整。</div>
+
+    <div class="modal-actions">
+      <button class="modal-btn ghost" id="cancelBtn" type="button" hidden>取消</button>
+      <button class="modal-btn primary" id="saveBtn" type="button">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'dot_canvas_config';
+
+  let apiKey   = '';
+  let deviceId = '';
+
+  const deviceBtn     = document.getElementById('deviceBtn');
+  const titleInput    = document.getElementById('titleInput');
+  const todoListEl    = document.getElementById('todoList');
+  const codePreviewEl = document.getElementById('codePreview');
+  const sendBtn       = document.getElementById('sendBtn');
+  const statusEl      = document.getElementById('status');
+
+  const modalMask   = document.getElementById('modalMask');
+  const modalError  = document.getElementById('modalError');
+  const keyInput    = document.getElementById('keyInput');
+  const deviceInput = document.getElementById('deviceInput');
+  const saveBtn     = document.getElementById('saveBtn');
+  const cancelBtn   = document.getElementById('cancelBtn');
+
+  const title = 'TODAY';
+  const todos = [
+    { done: true,  text: '整理本周的项目计划' },
+    { done: false, text: '回复设计稿的反馈意见' },
+    { done: false, text: '阅读 30 分钟' }
+  ];
+
+  titleInput.value = title;
+
+  function loadConfig() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const cfg = JSON.parse(raw);
+      if (cfg && typeof cfg.apiKey === 'string' && cfg.apiKey.trim() &&
+          typeof cfg.deviceId === 'string' && cfg.deviceId.trim()) {
+        return { apiKey: cfg.apiKey.trim(), deviceId: cfg.deviceId.trim() };
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  function saveConfig(key, device) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ apiKey: key, deviceId: device }));
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function applyConfig(cfg) {
+    apiKey   = cfg.apiKey;
+    deviceId = cfg.deviceId;
+    deviceBtn.textContent = deviceId;
+    deviceBtn.title = '点击修改密钥与设备序列号';
+  }
+
+  function updateDeviceButton() {
+    if (apiKey && deviceId) {
+      deviceBtn.textContent = deviceId;
+    } else {
+      deviceBtn.textContent = '未配置';
+    }
+  }
+
+  function openModal(isFirstTime) {
+    modalError.classList.remove('show');
+    keyInput.value    = apiKey || '';
+    deviceInput.value = deviceId || '';
+    cancelBtn.hidden  = !!isFirstTime;
+    modalMask.hidden  = false;
+    setTimeout(() => {
+      (apiKey ? deviceInput : keyInput).focus();
+    }, 30);
+  }
+
+  function closeModal() {
+    modalMask.hidden = true;
+  }
+
+  function handleSave() {
+    const key    = keyInput.value.trim();
+    const device = deviceInput.value.trim();
+
+    if (!key || !device) {
+      modalError.textContent = '请把 API 密钥和设备序列号都填写完整。';
+      modalError.classList.add('show');
+      return;
+    }
+
+    if (!saveConfig(key, device)) {
+      modalError.textContent = '保存失败：浏览器可能禁用了本地存储，请检查隐私设置。';
+      modalError.classList.add('show');
+      return;
+    }
+
+    applyConfig({ apiKey: key, deviceId: device });
+    closeModal();
+    setStatus('success', '✓ 配置已保存到本机。');
+  }
+
+  deviceBtn.addEventListener('click', () => openModal(false));
+  saveBtn.addEventListener('click', handleSave);
+  cancelBtn.addEventListener('click', closeModal);
+
+  [keyInput, deviceInput].forEach((el) => {
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') handleSave();
+    });
+  });
+
+  function initRows() {
+    todoListEl.innerHTML = '';
+
+    todos.forEach((todo, i) => {
+      const row = document.createElement('div');
+      row.className = 'todo-row';
+
+      const toggle = document.createElement('button');
+      toggle.type = 'button';
+      toggle.className = 'toggle';
+      toggle.addEventListener('click', () => {
+        todos[i].done = !todos[i].done;
+        syncRow(i);
+        updatePreview();
+      });
+
+      const input = document.createElement('input');
+      input.className = 'todo-input';
+      input.type = 'text';
+      input.value = todo.text;
+      input.placeholder = '待办 ' + (i + 1);
+      input.addEventListener('input', (e) => {
+        todos[i].text = e.target.value;
+        updatePreview();
+      });
+
+      row.appendChild(toggle);
+      row.appendChild(input);
+      todoListEl.appendChild(row);
+    });
+
+    todos.forEach((_, i) => syncRow(i));
+  }
+
+  function syncRow(i) {
+    const row    = todoListEl.children[i];
+    const toggle = row.querySelector('.toggle');
+    const input  = row.querySelector('.todo-input');
+    toggle.textContent = todos[i].done ? '✓' : '○';
+    input.style.textDecoration = todos[i].done ? 'line-through' : 'none';
+  }
+
+  function buildBody() {
+    const todoNodes = todos.map((todo) => {
+      const textProps = {
+        tw: 'text-18-chillduansans min-w-0',
+        style: { lineHeight: '1.15' },
+        children: todo.text || ''
+      };
+      if (todo.done) textProps.style.textDecoration = 'line-through';
+
+      return {
+        type: 'div',
+        props: {
+          tw: 'flex flex-row items-center',
+          style: { gap: '6px' },
+          children: [
+            {
+              type: 'span',
+              props: {
+                tw: 'text-18-chillduansans shrink-0',
+                style: { width: '16px', textAlign: 'center', lineHeight: '1.15' },
+                children: todo.done ? '✓' : '○'
+              }
+            },
+            { type: 'span', props: textProps }
+          ]
+        }
+      };
+    });
+
+    return {
+      refreshNow: true,
+      taskAlias: '今日概览',
+      border: 0,
+      data: {},
+      windowData: {
+        default: [
+          {
+            type: 'div',
+            props: {
+              tw: 'flex flex-col w-full h-full min-w-0 min-h-0',
+              style: { backgroundColor: '#ffffff', color: '#000000' },
+              children: [
+                {
+                  type: 'div',
+                  props: {
+                    tw: 'flex flex-row items-center shrink-0',
+                    style: { paddingBottom: '10px' },
+                    children: [
+                      {
+                        type: 'span',
+                        props: {
+                          tw: 'text-20-chillduansans font-bold',
+                          style: { lineHeight: '1', letterSpacing: '2px' },
+                          children: titleInput.value || 'TODAY'
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  type: 'div',
+                  props: {
+                    tw: 'w-full shrink-0',
+                    style: { height: '1px', backgroundColor: '#000000' },
+                    children: ''
+                  }
+                },
+                {
+                  type: 'div',
+                  props: {
+                    tw: 'flex flex-col flex-1 min-h-0',
+                    style: { paddingTop: '12px', gap: '3px' },
+                    children: todoNodes
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      layoutFull: { tw: 'p-[18px]' }
+    };
+  }
+
+  function updatePreview() {
+    codePreviewEl.textContent = JSON.stringify(buildBody(), null, 2);
+  }
+
+  function setStatus(kind, message) {
+    statusEl.hidden = false;
+    statusEl.className = 'status ' + kind;
+    statusEl.textContent = message;
+  }
+
+  async function send() {
+    if (!apiKey || !deviceId) {
+      openModal(true);
+      return;
+    }
+
+    const endpoint = 'https://dot.mindreset.tech/api/authV2/open/device/'
+                     + encodeURIComponent(deviceId) + '/canvas';
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = '发送中…';
+    setStatus('pending', '正在把画板内容发送到设备 ' + deviceId + ' …');
+
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + apiKey
+        },
+        body: JSON.stringify(buildBody())
+      });
+
+      const text = await res.text();
+      let data = null;
+      try { data = JSON.parse(text); } catch (_) {}
+
+      if (res.ok) {
+        setStatus('success', '✓ ' + ((data && data.message) || '画板内容已发送。'));
+      } else {
+        setStatus(
+          'error',
+          '✗ 请求失败（HTTP ' + res.status + '）：'
+            + ((data && data.message) || text || res.statusText)
+        );
+      }
+    } catch (err) {
+      setStatus('error', '✗ 网络错误：' + err.message);
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = '发送到设备';
+    }
+  }
+
+  sendBtn.addEventListener('click', send);
+
+  titleInput.addEventListener('input', updatePreview);
+  initRows();
+  updatePreview();
+
+  const saved = loadConfig();
+  if (saved) {
+    applyConfig(saved);
+  } else {
+    updateDeviceButton();
+    openModal(true);
+  }
+</script>
+
+</body>
+</html>
