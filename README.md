@@ -15,3 +15,6 @@
 
 通过设备传输将待办内容、状态传入摘录设备。    
 [开始编辑](./service/edit-today.html)
+
+### 调试工具
+- [Display-Area](./dev/display-area.html) 此工具帮助您确认摘录设备屏幕安全显示区域，确认四周线全部能看到即可，欢迎提交 issue 。
