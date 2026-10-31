@@ -389,7 +389,16 @@
   const GRID_START_X = 8;
   const GRID_COL_W = (LEFT_W - GRID_START_X * 2) / 7;
   const GRID_TOP = 54;
-  const GRID_ROW_H = 12;
+  const GRID_ROW_H = 13;
+
+  /* 字号（预览与 JSON 共用） */
+  const FS_MONTH = 26;
+  const FS_MONTH_SUFFIX = 11;
+  const FS_WEEK = 9.5;
+  const FS_DAY = 11;
+  const FS_EVENT = 13;
+  const FS_EVENT_BIG = 24;
+  const FS_FOOTER = 8;
 
   /* ============================================================
    * 2. 运行时状态
@@ -666,23 +675,23 @@
     c.fillStyle = '#000000';
     c.textBaseline = 'middle';
     c.textAlign = 'left';
-    c.font = 'bold 30px ' + FONT;
+    c.font = 'bold ' + FS_MONTH + 'px ' + FONT;
     c.fillText(String(state.month), 8, 20);
 
-    /* --- 年份（小字） --- */
-    c.font = '11px ' + FONT;
-    c.fillText(String(state.year), 52, 25);
+    /* --- 月份后缀「月」 --- */
+    c.font = FS_MONTH_SUFFIX + 'px ' + FONT;
+    c.fillText('月', 42, 23);
 
     /* --- 周一到周日表头 --- */
     c.textAlign = 'center';
-    c.font = '8px ' + FONT;
+    c.font = FS_WEEK + 'px ' + FONT;
     for (let i = 0; i < 7; i++) {
       const r = colRect(i);
       c.fillText(WEEK[i], r.x + r.w / 2, 46.5);
     }
 
     /* --- 日期网格 --- */
-    c.font = '10px ' + FONT;
+    c.font = FS_DAY + 'px ' + FONT;
     const cells = buildCells(state.year, state.month);
     for (let row = 0; row < 6; row++) {
       for (let col = 0; col < 7; col++) {
@@ -698,24 +707,24 @@
     const rw = RIGHT_W - 12;
     const rcx = rx + rw / 2;
 
-    c.font = '10px ' + FONT;
+    c.font = FS_EVENT + 'px ' + FONT;
     c.textAlign = 'center';
     const lines = wrapLines(c, state.eventText, rw, 2);
     let ty = 22;
     for (let i = 0; i < lines.length; i++) {
-      c.fillText(lines[i], rcx, ty + 6);
-      ty += 14;
+      c.fillText(lines[i], rcx, ty);
+      ty += 17;
     }
 
     /* --- 右栏：月日（下） --- */
-    c.font = 'bold 24px ' + FONT;
+    c.font = 'bold ' + FS_EVENT_BIG + 'px ' + FONT;
     c.fillText(pad2(state.impMonth) + '/' + pad2(state.impDay), rcx, 82);
 
     /* --- 底部文本 --- */
     c.fillStyle = '#ffffff';
     c.fillRect(0, CAL_H, CANVAS_W, BOTTOM_H);
     c.fillStyle = '#000000';
-    c.font = '8px ' + FONT;
+    c.font = FS_FOOTER + 'px ' + FONT;
     c.textAlign = 'center';
     c.fillText(state.footer, CANVAS_W / 2, CAL_H + 1 + (BOTTOM_H - 1) / 2);
 
@@ -809,14 +818,14 @@
     const out = [];
 
     /* 月份数字 */
-    out.push(textNode(8, 2, 44, 36, String(state.month), 30, { bold: true, align: 'left' }));
-    /* 年份 */
-    out.push(textNode(52, 16, 44, 18, String(state.year), 11, { align: 'left' }));
+    out.push(textNode(8, 2, 34, 36, String(state.month), FS_MONTH, { bold: true, align: 'left' }));
+    /* 月份后缀 */
+    out.push(textNode(42, 14, 16, 20, '月', FS_MONTH_SUFFIX, { align: 'left' }));
 
     /* 周表头 */
     for (let i = 0; i < 7; i++) {
       const r = colRect(i);
-      out.push(textNode(r.x, 41, r.w, 11, WEEK[i], 8, {}));
+      out.push(textNode(r.x, 41, r.w, 11, WEEK[i], FS_WEEK, {}));
     }
 
     /* 日期网格 */
@@ -826,22 +835,22 @@
         const v = cells[row * 7 + col];
         if (v === null) continue;
         const r = colRect(col);
-        out.push(textNode(r.x, GRID_TOP + GRID_ROW_H * row, r.w, GRID_ROW_H, String(v), 10, {}));
+        out.push(textNode(r.x, GRID_TOP + GRID_ROW_H * row, r.w, GRID_ROW_H, String(v), FS_DAY, {}));
       }
     }
 
     /* 右栏事项（上） */
-    out.push(textNode(LEFT_W + 6, 20, RIGHT_W - 12, 32, state.eventText, 10, {}));
+    out.push(textNode(LEFT_W + 6, 10, RIGHT_W - 12, 40, state.eventText, FS_EVENT, {}));
 
     /* 右栏月日（下） */
     out.push(textNode(
       LEFT_W + 6, 66, RIGHT_W - 12, 32,
       pad2(state.impMonth) + '/' + pad2(state.impDay),
-      24, { bold: true }
+      FS_EVENT_BIG, { bold: true }
     ));
 
     /* 底部文本 */
-    out.push(textNode(0, CAL_H + 1, CANVAS_W, BOTTOM_H - 1, state.footer, 8, {}));
+    out.push(textNode(0, CAL_H + 1, CANVAS_W, BOTTOM_H - 1, state.footer, FS_FOOTER, {}));
 
     /* 分割线 */
     out.push(rectNode(LEFT_W, 0, 1, CAL_H, '#000000'));
